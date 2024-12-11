@@ -106,6 +106,7 @@ static const uint8_t STATUS_MESSAGE_SIZE_EXCEEDED = 0x0A;
 static const uint8_t DISCOVERY_ALREADY_STARTED = 0xA0;
 static const uint8_t DISCOVERY_TARGET_ACTIVATION_FAILED = 0xA1;
 static const uint8_t DISCOVERY_TEAR_DOWN = 0xA2;
+static const uint8_t STATUS_LPCD_FAKE_DETECTION = 0xA3;
 static const uint8_t RF_TRANSMISSION_ERROR = 0xB0;
 static const uint8_t RF_PROTOCOL_ERROR = 0xB1;
 static const uint8_t RF_TIMEOUT_ERROR = 0xB2;

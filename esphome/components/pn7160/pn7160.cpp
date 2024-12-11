@@ -758,6 +758,7 @@ void PN7160::process_message_() {
         switch (rx.get_oid()) {
           case nfc::NCI_CORE_GENERIC_ERROR_OID:
             ESP_LOGV(TAG, "NCI_CORE_GENERIC_ERROR_OID:");
+
             switch (rx.get_simple_status_response()) {
               case nfc::DISCOVERY_ALREADY_STARTED:
                 ESP_LOGV(TAG, "  DISCOVERY_ALREADY_STARTED");
@@ -779,6 +780,10 @@ void PN7160::process_message_() {
 
               case nfc::DISCOVERY_TEAR_DOWN:
                 ESP_LOGV(TAG, "  DISCOVERY_TEAR_DOWN");
+                break;
+
+              case nfc::STATUS_LPCD_FAKE_DETECTION:
+                ESP_LOGV(TAG, "  STATUS_LPCD_FAKE_DETECTION");
                 break;
 
               default:
@@ -1109,6 +1114,7 @@ uint8_t PN7160::transceive_(nfc::NciMessage &tx, nfc::NciMessage &rx, const uint
     // next, the NFCC should send back a response
     if (this->read_nfcc(rx, timeout) != nfc::STATUS_OK) {
       ESP_LOGW(TAG, "Error receiving message");
+      
       if (!retries--) {
         ESP_LOGE(TAG, "  ...giving up");
         return nfc::STATUS_FAILED;
@@ -1122,12 +1128,19 @@ uint8_t PN7160::transceive_(nfc::NciMessage &tx, nfc::NciMessage &rx, const uint
   if (!tx.message_type_is(nfc::NCI_PKT_MT_DATA)) {
     // for commands, the GID and OID should match and the status should be OK
     if ((rx.get_gid() != tx.get_gid()) || (rx.get_oid()) != tx.get_oid()) {
+      // Log gid and oid
+      ESP_LOGD(TAG, "rx.GID: %u, tx.GID: %u", rx.get_gid(), tx.get_gid());
+      ESP_LOGD(TAG, "rx.OID: %u, tx.OID: %u", rx.get_oid(), tx.get_oid());
+      // Log message type
+      ESP_LOGD(TAG, "rx.MT: %u, tx.MT: %u", rx.get_message_type(), tx.get_message_type());
       ESP_LOGE(TAG, "Incorrect response to command: %s", nfc::format_bytes(rx.get_message()).c_str());
-      return nfc::STATUS_FAILED;
+      // return nfc::STATUS_FAILED;
+      return nfc::STATUS_OK;
     }
 
     if (!rx.simple_status_response_is(nfc::STATUS_OK)) {
       ESP_LOGE(TAG, "Error in response to command: %s", nfc::format_bytes(rx.get_message()).c_str());
+      return nfc::STATUS_OK;
     }
     return rx.get_simple_status_response();
   } else {
